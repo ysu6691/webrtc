@@ -170,8 +170,8 @@ function handleIce(data) {
 
 function handleAddStream(data) {
   const peerFace = document.createElement("video")
-  peerFace.setAttribute("autoplay", true)
-  peerFace.setAttribute("playsinline", true)
+  peerFace.setAttribute("autoplay", "")
+  peerFace.setAttribute("playsinline", "")
   peerFace.setAttribute("width", "400")
   peerFace.setAttribute("height", "400")
   peerFace.srcObject = data.stream
