@@ -132,7 +132,6 @@ socket.on("offer", async (offer) => {
   const answer = await myPeerConnection.createAnswer()
   myPeerConnection.setLocalDescription(answer)
   socket.emit("answer", answer, roomName)
-
 })
 
 socket.on("answer", answer => {
@@ -146,19 +145,7 @@ socket.on("ice", ice => {
 // RTC Code
 
 function makeConnection() {
-  myPeerConnection = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: [
-          "stun:stun.l.google.com:19302",
-          "stun:stun1.l.google.com:19302",
-          "stun:stun2.l.google.com:19302",
-          "stun:stun3.l.google.com:19302",
-          "stun:stun4.l.google.com:19302",
-        ]
-      }
-    ]
-  })
+  myPeerConnection = new RTCPeerConnection()
   myPeerConnection.addEventListener("icecandidate", handleIce)
   myPeerConnection.addEventListener("addstream", handleAddStream)
   myStream.getTracks().forEach(track => myPeerConnection.addTrack(track, myStream))
@@ -169,6 +156,13 @@ function handleIce(data) {
 }
 
 function handleAddStream(data) {
-  const peerFace = document.getElementById("peerFace")
-  peerFace.srcObject = data.stream
+  console.log('asdf')
+  const video = document.createElement("video")
+  video.setAttribute('autoplay', "")
+  video.setAttribute('playsinline', "")
+  video.setAttribute('width', "400")
+  video.setAttribute('height', "400")
+  video.srcObject = data.stream
+  const peerFaces = document.getElementById("peerFaces")
+  peerFaces.appendChild(video)
 }
