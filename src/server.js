@@ -1,6 +1,7 @@
 import http from 'http'
 import SocketIO from 'socket.io'
 import express from 'express'
+import { doesNotMatch } from 'assert';
 
 const app = express();
 
@@ -19,7 +20,6 @@ wsServer.on("connection", socket => {
   socket.on("join_room", (roomName) => {
     socket.join(roomName)
     socket.to(roomName).emit("welcome")
-    console.log(wsServer.sockets.adapter.rooms.get(roomName)?.size)
   })
   socket.on("offer", (offer, roomName) => {
     socket.to(roomName).emit("offer", offer)
@@ -27,7 +27,7 @@ wsServer.on("connection", socket => {
   socket.on("answer", (answer, roomName) => {
     socket.to(roomName).emit("answer", answer)
   })
-  socket.on("ice", (ice, roomName) => {
+  socket.on("ince", (ice, roomName) => {
     socket.to(roomName).emit("ice", ice)
   })
 })
