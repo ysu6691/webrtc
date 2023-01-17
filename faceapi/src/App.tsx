@@ -21,11 +21,11 @@ function App() {
   // 라벨링 할 인물 이미지 로컬에서 가져오기
   const loadImage = async () => {
     // 업로드 된 이미지 이름을 배열에 담아 라벨링 합니다.
-    const labels = ["you", "haemin"];
+    const labels = ["you", "minu"];
 
     return Promise.all(
       labels.map(async (label) => {
-        const images = await faceapi.fetchImage(require(`./imgs/${label}.jpg`));
+        const images = await faceapi.fetchImage(require(`./imgs/${label}.png`));
         const descriptions = [];
         const detections = await faceapi
           .detectSingleFace(images)

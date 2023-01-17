@@ -27,7 +27,7 @@ wsServer.on("connection", socket => {
   socket.on("answer", (answer, roomName) => {
     socket.to(roomName).emit("answer", answer)
   })
-  socket.on("ince", (ice, roomName) => {
+  socket.on("ice", (ice, roomName) => {
     socket.to(roomName).emit("ice", ice)
   })
 })

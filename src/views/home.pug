@@ -17,7 +17,11 @@ html(lang="en")
             div#call
                 div#myStream
                     video#myFace(autoplay, playsinline, width="400", height="400")
-                ul#chat
+                div#peerStream
+                    video#peerFace(autoplay, playsinline, width="400", height="400")
+                form#chatForm 
+                    input#chatInput(placeholder="채팅을 입력하세요", required, type="text")
+                ul#chatList
 
         script(src="/socket.io/socket.io.js")
         script(src="/public/js/app.js")

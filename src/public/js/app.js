@@ -9,6 +9,12 @@ const myFace = document.getElementById("myFace")
 
 const call = document.getElementById("call")
 
+const chatForm = document.getElementById("chatForm")
+const chatInput = document.getElementById("chatInput")
+const chatList = document.getElementById("chatList")
+chatList.style.position = 'absolute'
+chatList.style.top = '700px'
+
 call.hidden = true
 
 let myStream
@@ -51,10 +57,26 @@ async function handleWelcomeSubmit(event) {
 welcomeForm.addEventListener("submit", handleWelcomeSubmit)
 
 // Socket Code
+function sendNewChat(event, myDataChannel) {
+  event.preventDefault()
+  const li = document.createElement("li")
+  li.innerText = chatInput.value
+  chatList.appendChild(li)
+  myDataChannel.send(chatInput.value)
+  chatInput.value = ''
+}
+
+function receiveNewChat(event) {
+  const li = document.createElement("li")
+  li.innerText = event.data
+  chatList.appendChild(li)
+}
+
 // peer A에서 실행
 socket.on("welcome", async () => {
   myDataChannel = myPeerConnection.createDataChannel("chat")
-  myDataChannel.addEventListener("message", event => console.log(event))
+  chatForm.addEventListener("submit", (event) => sendNewChat(event, myDataChannel))
+  myDataChannel.addEventListener("message", receiveNewChat)
   const offer = await myPeerConnection.createOffer()
   myPeerConnection.setLocalDescription(offer)
   socket.emit("offer", offer, roomName)
@@ -63,7 +85,8 @@ socket.on("welcome", async () => {
 socket.on("offer", async (offer) => {
   myPeerConnection.addEventListener("datachannel", event => {
     myDataChannel = event.channel
-    myDataChannel.addEventListener("message", console.log)
+    chatForm.addEventListener("submit", (event) => sendNewChat(event, myDataChannel))
+    myDataChannel.addEventListener("message", receiveNewChat)
   })
   myPeerConnection.setRemoteDescription(offer)
   const answer = await myPeerConnection.createAnswer()
@@ -94,5 +117,5 @@ function handleIce(data) {
 }
 
 function handleAddStream(data) {
-  
+  peerFace.srcObject = data.stream
 }
