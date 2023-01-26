@@ -10,18 +10,16 @@ import {
 import axios from "axios";
 
 function Visitor() {
-  const [mySessionId, setMySessionId] = useState<string>("SessionA"); // 세션 id
-  const [myUserName, setMyUserName] = useState<string>("Participant"); // 참가자 닉네임
   const [session, setSession] = useState<undefined | Session>(undefined); // 세션
-  const [mainStreamManager, setMainStreamManager] = useState<
-    Publisher | undefined
-  >(undefined); // 메인 스트림
   const [ownerConnection, setOwnerConnection] = useState<
     Connection | undefined
   >(undefined);
 
   const OV = useMemo(() => new OpenVidu(), []);
   const APPLICATION_SERVER_URL = "http://localhost:5000/";
+
+  let mySessionId: string;
+  let myUserName: string;
 
   useEffect(() => {
     setSession(OV.initSession());
@@ -62,8 +60,8 @@ function Visitor() {
   const myUserNameInputRef = useRef<HTMLInputElement>(null);
   const joinRoom = async function (event: FormEvent) {
     event.preventDefault();
-    await setMySessionId(mySessionIdInputRef.current!.value);
-    await setMyUserName(myUserNameInputRef.current!.value);
+    mySessionId = mySessionIdInputRef.current!.value;
+    myUserName = myUserNameInputRef.current!.value;
     getToken()
       .then((token: string) => {
         session?.connect(token, { clientData: myUserName }).then(async () => {
@@ -121,6 +119,7 @@ function Visitor() {
 
   return (
     <div>
+      <h1>참가자</h1>
       <form onSubmit={joinRoom}>
         <input type="text" placeholder="세션 ID" ref={mySessionIdInputRef} />
         <input type="text" placeholder="닉네임" ref={myUserNameInputRef} />

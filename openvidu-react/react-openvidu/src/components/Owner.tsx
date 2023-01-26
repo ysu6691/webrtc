@@ -9,28 +9,30 @@ import {
 import axios from "axios";
 
 const Owner = function () {
-  const [mySessionId, setMySessionId] = useState<string>("SessionA"); // 세션 id
-  const [myUserName, setMyUserName] = useState<string>("Participant"); // 참가자 닉네임
   const [session, setSession] = useState<undefined | Session>(undefined); // 세션
-  const [mainStreamManager, setMainStreamManager] = useState<
-    Publisher | undefined
-  >(undefined); // 메인 스트림
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined); // 로컬 스트림
-  const [currentVideoDevice, setCurrentVideoDevice] = useState<
-    Device | undefined
-  >(undefined); // 현재 비디오 출력중인 기기
+  // const [mainStreamManager, setMainStreamManager] = useState<
+  //   Publisher | undefined
+  // >(undefined); // 메인 스트림
+  // const [currentVideoDevice, setCurrentVideoDevice] = useState<
+  //   Device | undefined
+  // >(undefined); // 현재 비디오 출력중인 기기
 
   const OV = useMemo(() => new OpenVidu(), []);
   const APPLICATION_SERVER_URL = "http://localhost:5000/";
+  let mySessionId: string
+  let myUserName: string
 
   useEffect(() => {
     setSession(OV.initSession());
   }, [OV]);
 
+  console.log(session)
+
   // 세션 생성
   const createSession = async function (
     sessionId: string
-  ): Promise<string | void> {
+  ): Promise<string> {
     const response = await axios({
       method: "post",
       url: APPLICATION_SERVER_URL + "api/sessions",
@@ -55,9 +57,7 @@ const Owner = function () {
   // 토큰 가져오기
   const getToken = async function () {
     const sessionId = await createSession(mySessionId);
-    if (typeof sessionId === "string") {
-      return await createToken(sessionId);
-    }
+    return await createToken(sessionId);
   };
 
   // 세션 입장
@@ -66,11 +66,11 @@ const Owner = function () {
   const streamRef = useRef<HTMLVideoElement>(null);
   const joinRoom = async function (event: FormEvent) {
     event.preventDefault();
-    await setMySessionId(mySessionIdInputRef.current!.value);
-    await setMyUserName(myUserNameInputRef.current!.value);
+    mySessionId = mySessionIdInputRef.current!.value;
+    myUserName = myUserNameInputRef.current!.value;
     getToken()
-      .then((token: string) => {
-        session?.connect(token, { clientData: myUserName }).then(async () => {
+    .then((token: string) => {
+      session?.connect(token, { clientData: myUserName }).then(async () => {
           const newPublisher = await OV.initPublisherAsync(undefined, {
             audioSource: undefined, // The source of audio. If undefined default microphone
             videoSource: undefined, // The source of video. If undefined default webcam
@@ -86,24 +86,24 @@ const Owner = function () {
           session.publish(newPublisher);
 
           // 현재 사용 가능한 비디오 가져오기
-          const devices = await OV.getDevices();
-          const videoDevices = devices.filter(
-            (device) => device.kind === "videoinput"
-          );
-          const currentVideoDeviceId = newPublisher.stream
-            .getMediaStream()
-            .getVideoTracks()[0]
-            .getSettings().deviceId;
-          const newCurrentVideoDevice = videoDevices.find(
-            (device) => device.deviceId === currentVideoDeviceId
-          );
+          // const devices = await OV.getDevices();
+          // const videoDevices = devices.filter(
+          //   (device) => device.kind === "videoinput"
+          // );
+          // const currentVideoDeviceId = newPublisher.stream
+          //   .getMediaStream()
+          //   .getVideoTracks()[0]
+          //   .getSettings().deviceId;
+          // const newCurrentVideoDevice = videoDevices.find(
+          //   (device) => device.deviceId === currentVideoDeviceId
+          // );
 
           // 사업자 스트리밍 출력
           newPublisher.addVideoElement(streamRef.current!);
-
-          setCurrentVideoDevice(newCurrentVideoDevice);
-          setMainStreamManager(newPublisher);
           setPublisher(newPublisher);
+
+          // setCurrentVideoDevice(newCurrentVideoDevice);
+          // setMainStreamManager(newPublisher);
         });
       })
       .catch((err) => console.log(err));
@@ -116,6 +116,7 @@ const Owner = function () {
 
   // 새로운 커넥션 생길 때마다 사업자 정보 보내기
   session?.on("connectionCreated", (event) => {
+    console.log(session.remoteConnections.size)
     session?.signal({
       data: mySessionId,
       to: [event.connection],
@@ -149,6 +150,7 @@ const Owner = function () {
 
   return (
     <div>
+      <h1>방장</h1>
       <form onSubmit={joinRoom}>
         <input type="text" placeholder="세션 ID" ref={mySessionIdInputRef} />
         <input type="text" placeholder="닉네임" ref={myUserNameInputRef} />
