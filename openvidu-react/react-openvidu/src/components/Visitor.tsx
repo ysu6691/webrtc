@@ -16,7 +16,8 @@ function Visitor() {
   >(undefined);
 
   const OV = useMemo(() => new OpenVidu(), []);
-  const APPLICATION_SERVER_URL = "http://localhost:5000/";
+  const APPLICATION_SERVER_URL = "http://localhost:5000";
+  const SECRET = "MY_SECRET";
 
   let mySessionId: string;
   let myUserName: string;
@@ -43,9 +44,13 @@ function Visitor() {
     const response = await axios({
       method: "post",
       url:
-        APPLICATION_SERVER_URL + "api/sessions/" + sessionId + "/connections",
+        APPLICATION_SERVER_URL + "/api/sessions/" + sessionId + "/connections",
       data: JSON.stringify({}),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        Authorization: "Basic " + btoa("OPENVIDUAPP:" + SECRET),
+      },
     });
     return response.data;
   };
@@ -64,7 +69,7 @@ function Visitor() {
     myUserName = myUserNameInputRef.current!.value;
     getToken()
       .then((token: string) => {
-        session?.connect(token, { clientData: myUserName }).then(async () => {
+        session?.connect(token, { clientData: myUserName }).then(() => {
           console.log("연결 성공");
         });
       })
@@ -79,9 +84,26 @@ function Visitor() {
   // 스트리밍 화면 출력
   const streamRef = useRef<HTMLVideoElement>(null);
   session?.on("streamCreated", (event) => {
+    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaa", session);
     const ownerStream = session.subscribe(event.stream, streamRef.current!);
     ownerStream.addVideoElement(streamRef.current!);
+    console.log("vvvvvvvvvvvvvvvvvvvvvvvvvvvvv", session);
   });
+
+  console.log(ownerConnection);
+
+  useEffect(() => {
+    console.log(ownerConnection);
+    return () => {
+      if (ownerConnection) {
+        session?.signal({
+          data: "",
+          to: [ownerConnection],
+          type: "test",
+        });
+      }
+    };
+  }, []);
 
   // 먹이주기
   const feedInputRef = useRef<HTMLInputElement>(null);

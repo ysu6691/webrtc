@@ -18,9 +18,8 @@ const Owner = function () {
   //   Device | undefined
   // >(undefined); // 현재 비디오 출력중인 기기
 
-  // https://i8b208.p.ssafy.io:5000
   const OV = useMemo(() => new OpenVidu(), []);
-  const APPLICATION_SERVER_URL = "http://localhost:5000";
+  const APPLICATION_SERVER_URL = "https://i8b208.p.ssafy.io:8445/";
   const SECRET = "MY_SECRET";
   let mySessionId: string;
   let myUserName: string;
@@ -32,17 +31,15 @@ const Owner = function () {
   console.log(session);
 
   // 세션 생성
-  const createSession = async function (sessionId: string): Promise<string> {
-    console.log(typeof sessionId);
-    console.log({ customSessionId: sessionId });
-    console.log(typeof { customSessionId: sessionId });
+  const createSession = async function (
+    sessionId: string
+  ): Promise<{ id: string }> {
     const response = await axios({
       method: "post",
-      url: APPLICATION_SERVER_URL + "/api/sessions",
+      url: APPLICATION_SERVER_URL + "openvidu/api/sessions",
       data: JSON.stringify({ customSessionId: sessionId }),
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
         Authorization: "Basic " + btoa("OPENVIDUAPP:" + SECRET),
       },
     });
@@ -52,21 +49,24 @@ const Owner = function () {
   };
 
   // 토큰 생성
-  const createToken = async function (sessionId: string) {
+  const createToken = async function (sessionId: { id: string }) {
+    console.log(sessionId.id);
     const response = await axios({
       method: "post",
       url:
-        APPLICATION_SERVER_URL + "/api/sessions/" + sessionId + "/connections",
+        APPLICATION_SERVER_URL +
+        "openvidu/api/sessions/" +
+        sessionId.id +
+        "/connection",
       data: JSON.stringify({}),
       headers: {
-        "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
         Authorization: "Basic " + btoa("OPENVIDUAPP:" + SECRET),
       },
     });
     console.log(response);
-    console.log("================asdfsadfasdfasd");
-    return response.data;
+    return response.data.token;
   };
 
   // 토큰 가져오기
@@ -138,10 +138,6 @@ const Owner = function () {
       type: "welcome",
     });
   });
-
-  session?.on("signal:test", (e) => console.log(e));
-
-  // session?.on("test", (event) => console.log(event));
 
   // 뱃지 뿌리기
   const sendBadge = function (event: FormEvent) {
